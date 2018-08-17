@@ -121,6 +121,8 @@
                 }
 
                 const onError = (err) => {
+                    navigator.geolocation.clearWatch(watchId);
+
                     if (samples.length == 0) {
                         reject(err);
                         return;
