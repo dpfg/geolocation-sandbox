@@ -86,7 +86,7 @@
                 return samples.reduce((p, c) => c.coords.accuracy < p.coords.accuracy ? c : p)
             }
 
-            let cleanup = () => {
+            let cleanupSubscriptions = () => {
                 navigator.geolocation.clearWatch(watchId);
                 clearTimeout(timeoutId);
             }
@@ -94,9 +94,7 @@
             let timeout = new Promise((resolve, reject) => {
                 timeoutId = setTimeout(() => {
                     logEvent('Timed out')
-                    cleanup()
-                    // navigator.geolocation.clearWatch(watchId);
-                    // clearInterval(watchId)
+                    cleanupSubscriptions()
 
                     if (samples.length == 0) {
                         reject('Timed out in ' + ms + 'ms.');
@@ -119,7 +117,7 @@
 
                     if (position.coords.accuracy <= minimalAccuracy) {
                         logEvent(`Accurate enough data was recieved.`)
-                        cleanup();
+                        cleanupSubscriptions();
                         resolve(position);
                         return;
                     }
@@ -128,8 +126,7 @@
                 }
 
                 const onError = (err) => {
-                    // navigator.geolocation.clearWatch(watchId);
-                    cleanup();
+                    cleanupSubscriptions();
 
                     if (samples.length == 0) {
                         reject(err);
