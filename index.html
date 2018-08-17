@@ -109,7 +109,7 @@
                 }
 
                 const onUpdate = (position) => {
-                    logEvent(`Updated: ${position.coords.accuracy}`)
+                    logEvent(`Updated: ${position.coords.latitude}, ${position.coords.longitude} - ${position.coords.accuracy}`)
 
                     if (position.coords.accuracy <= minimalAccuracy) {
                         logEvent(`Accurate enough data was recieved.`)
