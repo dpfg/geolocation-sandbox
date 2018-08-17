@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Document</title>
+    <style>
+        #winner {
+            color: red;
+        }
+    </style>
+</head>
+
+<body>
+    <h3>Location testing</h3>
+
+    <div id="console">
+
+    </div>
+
+    <div id="winner"></div>
+    <script>
+
+        // let start = Date.now();
+
+        // let getLocation = () => {
+        //     navigator.geolocation.getCurrentPosition(
+        //         loc => {
+        //             let end = Date.now();
+
+        //             const c = document.getElementById("console")
+        //             let timing = document.createElement("div")
+        //             timing.innerText = "Took: " + (end - start) / 1000.0 + " sec."
+        //             c.appendChild(timing)
+
+        //             let div = document.createElement("div")
+        //             div.innerText = `${loc.coords.latitude}, ${loc.coords.longitude} - ${loc.coords.accuracy}`
+        //             c.appendChild(div)
+
+        //             start = Date.now();
+        //             getLocation();
+        //         },
+        //         err => {
+        //             const c = document.getElementById("console")
+        //             let div = document.createElement("div")
+        //             div.innerText = "Error: " + err
+        //             c.appendChild(div)
+        //         },
+        //         {
+        //             enableHighAccuracy: true,
+        //             maximumAge: 0,
+        //             timeout: 2700
+        //         }
+        //     );
+        // }
+
+        const logEvent = (msg) => {
+            const c = document.getElementById("console")
+            let div = document.createElement("div")
+            div.innerText = msg
+            c.appendChild(div)
+        }
+
+        const mockWatchPosition = (onSuccess, onError, opts) => {
+            let currectAccuracy = 8200
+
+            const random = (max) => Math.floor(Math.random() * Math.floor(max))
+
+            return setInterval(() => {
+                currectAccuracy = currectAccuracy - random(currectAccuracy / 2)
+                onSuccess({ coords: { accuracy: currectAccuracy } })
+            }, 1000);
+        }
+
+        function getLocation() {
+            const minimalAccuracy = 50; // meters
+            const timeoutMS = 15000;
+            const sampleTimeoutMS = 12000;
+
+            let samples = [];
+            let watchId;
+
+            let findBest = (samples) => {
+                return samples.reduce((p, c) => c.coords.accuracy < p.coords.accuracy ? c : p)
+            }
+
+            let timeout = new Promise((resolve, reject) => {
+                setTimeout(() => {
+                    logEvent('Timed out')
+                    navigator.geolocation.clearWatch(watchId);
+                    // clearInterval(watchId)
+
+                    if (samples.length == 0) {
+                        reject('Timed out in ' + ms + 'ms.');
+                        return;
+                    }
+
+                    resolve(findBest(samples));
+                }, timeoutMS);
+            })
+
+            let retrieveSamples = new Promise((resolve, reject) => {
+                const opts = {
+                    enableHighAccuracy: true,
+                    maximumAge: 0,
+                    timeout: sampleTimeoutMS
+                }
+
+                const onUpdate = (position) => {
+                    logEvent(`Updated: ${position.coords.accuracy}`)
+
+                    if (position.coords.accuracy <= minimalAccuracy) {
+                        logEvent(`Accurate enough data was recieved.`)
+                        resolve(position);
+                        return;
+                    }
+
+                    samples.push(position)
+                }
+
+                const onError = (err) => {
+                    if (samples.length == 0) {
+                        reject(err);
+                        return;
+                    }
+
+                    resolve(findBest(samples));
+                }
+
+                watchId = navigator.geolocation.watchPosition(onUpdate, onError, opts);
+                // watchId = mockWatchPosition(onUpdate, onError, opts);
+            })
+
+            return Promise.race([
+                retrieveSamples,
+                timeout
+            ])
+        }
+
+        let start = Date.now();
+        getLocation().then(position => {
+            let total = (Date.now() - start) / 1000;
+            logEvent(`Final value: ${position.coords.accuracy}.`)
+            logEvent(`Took: ${total} sec.`)
+        })
+
+
+        // navigator.geolocation.watchPosition(
+        //     loc => {
+        //         let c = document.getElementById("console")
+        //         let div = document.createElement("div")
+        //         div.innerText = `${loc.coords.latitude}, ${loc.coords.longitude} - ${loc.coords.accuracy}`
+        //         c.appendChild(div)
+        //     },
+        //     err => console.log(err),
+        //     {
+        //         enableHighAccuracy: true,
+        //         maximumAge: 0,
+        //         timeout: 27000
+        //     }
+        // )
+    </script>
+</body>
+
+</html>
