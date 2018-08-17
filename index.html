@@ -75,7 +75,7 @@
         }
 
         function getLocation() {
-            const minimalAccuracy = 50; // meters
+            const minimalAccuracy = 70; // in meters. iOS devices usually give 65m at first attempt.
             const timeoutMS = 15000;
             const sampleTimeoutMS = 12000;
 
