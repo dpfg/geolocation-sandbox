@@ -106,11 +106,6 @@
             })
 
             let retrieveSamples = new Promise((resolve, reject) => {
-                const opts = {
-                    enableHighAccuracy: true,
-                    maximumAge: 0,
-                    timeout: sampleTimeoutMS
-                }
 
                 const onUpdate = (position) => {
                     logEvent(`Updated: ${position.coords.latitude}, ${position.coords.longitude} - ${position.coords.accuracy}`)
@@ -134,6 +129,12 @@
                     }
 
                     resolve(findBest(samples));
+                }
+
+                const opts = {
+                    enableHighAccuracy: true,
+                    maximumAge: 3000,
+                    timeout: sampleTimeoutMS
                 }
 
                 watchId = navigator.geolocation.watchPosition(onUpdate, onError, opts);
